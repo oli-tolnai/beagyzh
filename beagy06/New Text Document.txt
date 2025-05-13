@@ -1,0 +1,92 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+
+
+const char* ssid = "qwert";
+const char* password = "0123456789";
+
+IPAddress local_ip(192,168,1,1);
+IPAddress gateway(192,168,1,1);
+IPAddress subnet(255,255,255,0);
+ESP8266WebServer server(80);
+
+
+
+#define LED1pin LED_BUILTIN
+bool LED1status = LOW;
+
+
+
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED1pin, OUTPUT);
+
+
+  WiFi.softAP(ssid, password);
+  WiFi.softAPConfig(local_ip, gateway, subnet);
+  delay(100);
+
+  server.on("/", handle_OnConnect);
+  server.on("/led1on", handle_led1on);
+  server.on("/led1off", handle_led1off);
+
+
+  server.onNotFound(handle_NotFound);
+
+  server.begin();
+  Serial.println("HTTP sever started");
+}
+void loop() {
+  server.handleClient();
+  if(LED1status)
+  {digitalWrite(LED1pin, HIGH);}
+  else
+  {digitalWrite(LED1pin, LOW);}
+}
+
+void handle_OnConnect() {
+  LED1status = LOW;
+  Serial.println("LED: be | LED: ki");
+  server.send(200, "text/html", SendHTML(LED1status));
+}
+
+void handle_led1on() {
+  LED1status = HIGH;
+  Serial.println("LED: be");
+  server.send(200, "text/html", SendHTML(true));
+}
+
+void handle_led1off() {
+  LED1status = LOW;
+  Serial.println("LED: ki");
+  server.send(200, "text/html", SendHTML(false));
+}
+
+void handle_NotFound() {
+  server.send(404, "text/plain", "Not found");
+}
+
+String SendHTML(uint8_t led1stat) {
+  String ptr = "<!DOCTYPE html><html>\n";
+  ptr += "<head>\n";
+  ptr += "<title>LED Control</title>\n";
+  ptr += "</head>\n";
+  ptr += "<body>\n";
+  ptr += "<h1>ESP8266 Web Server</h1>\n";
+  ptr += "<h3>AP Mode</h3>\n";
+
+  if(led1stat)
+  {
+    ptr += "<p>LED1 Status: OFF</p>";
+    ptr += "<a href=\"/led1off\"><button>OFF</button></a>\n";
+  }
+  else {
+    ptr += "<p>LED1 Status: ON</p><a href=\"/led1on\">";
+    ptr += "<button>ON</button></a>\n";
+  }
+
+  ptr += "</body>\n";
+  ptr += "</html>\n";
+  return ptr;
+}

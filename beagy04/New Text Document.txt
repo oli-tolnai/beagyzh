@@ -1,0 +1,33 @@
+#include  <ESP8266WiFi.h>
+IPAddress local_IP(192, 168, 4, 22);
+IPAddress gateway(192, 168, 4, 9);
+IPAddress subnet(255, 255, 255, 0);
+
+const char* ssid = "XYWIFI";
+const char* password = "Almafa1234";
+const int channel = 1;
+const bool hidden = false;
+const int max_connection = 2;
+
+
+void setup() {
+  Serial.begin(9600);
+
+  bool a = WiFi.softAP(ssid, password, channel, hidden, max_connection);
+  bool b = WiFi.softAPConfig(local_IP, gateway, subnet);
+  if(a){
+    Serial.print("# WiFi létrehozva");
+  }
+  else{
+    Serial.print("# Sikertelen");
+  }
+
+  if(b){
+    Serial.print("# IP létrehozva");
+  }
+}
+
+void loop() {
+  Serial.println(WiFi.softAPgetStationNum());
+  delay(1000);
+}

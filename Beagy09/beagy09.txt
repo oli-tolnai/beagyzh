@@ -1,0 +1,76 @@
+#include <ThingSpeak.h>
+#include <ESP8266WiFi.h>
+
+//wifi
+const char* ssid = "BIR_WIFI";
+const char* password = "OeBir2019";
+WiFiClient client;
+
+//thingspeak
+unsigned long TemChannelNumber = 2922142;
+const char* myWriteAPIKey = "9DGFYT9NG7RLX5HL";
+long randomTemperature;
+
+byte trynum = 20;
+unsigned long sleep_time=30e6;
+
+void setup() {
+  randomSeed(analogRead(0));
+  Serial.begin(115200);
+  Serial.setTimeout(2000);
+
+  //start connecting
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
+  //wifi connect
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  
+  trynum = 20;
+  while(WiFi.status() != WL_CONNECTED && trynum>0){
+    delay(500);
+    trynum--;
+    Serial.print(".");
+  }
+
+  if(trynum>0){
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+    ThingSpeak.begin(client);
+    PostDeviceData();
+    ESP.deepSleep(sleep_time);
+  } else{
+    ESP.deepSleep(sleep_time);
+  }
+}
+
+void loop() {}
+
+void PostDeviceData(){
+  int x=0;
+  trynum=35;
+  randomSeed(analogRead(0));
+  long randomTemperature = random(50, 100);
+  randomSeed(analogRead(0));
+  long randomTemperature2 = random(0,50);
+
+  Serial.print("Post Temperature data to server: ");
+
+  while(x!=200 && trynum>0){
+    ThingSpeak.setField(1, randomTemperature);
+    ThingSpeak.setField(2, randomTemperature2);
+    x= ThingSpeak.writeFields(TemChannelNumber, myWriteAPIKey);
+    if(x==200){
+      Serial.println();
+      Serial.println("TemChannel update successful.");
+    }
+    else{
+      Serial.print(".");
+      delay(1000);
+    }
+  }
+}

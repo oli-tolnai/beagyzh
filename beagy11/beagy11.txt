@@ -1,0 +1,104 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <Arduino_JSON.h>
+#include <WiFiClient.h>
+const char* ssid = "BIR_WIFI";
+const char* password = "OeBir2019";
+
+//GET API
+String appid = "db6ffeb1a9d21df9f1403dc8f3aeb0fd";
+String units = "metric";
+String lang = "hu";
+String city = "Budapest";
+String serverPath;
+HTTPClient http;
+WiFiClient clientWifi;
+//JSON objektum
+String jsonBuffer;
+//10 s-ként lekérdezés
+//nem blokkoló módon
+unsigned long prevTime = 0;
+unsigned long timerDelay = 10000;
+
+void setup() {
+  Serial.begin(115200);
+
+  WiFi.begin(ssid, password);
+  Serial.println("Connecting");
+  while(WiFi.status() != WL_CONNECTED){
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("Connected");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+
+  serverPath = "http://api.openweathermap.org/data/2.5/weather?q=";
+  serverPath += city;
+  serverPath += "&lang=";
+  serverPath += lang;
+  serverPath += "&units=";
+  serverPath += units;
+  serverPath += "&appid=";
+  serverPath += appid;
+
+  Serial.println(serverPath);
+}
+
+String httpGETRequest(String serverName){
+  HTTPClient http;
+
+  //szerverhez való csatlakozás
+  http.begin(clientWifi, serverName);
+
+  //HTTP GET request elküldése
+  int httpResponseCode = http.GET();
+
+  String payload = "{}";
+
+  if (httpResponseCode>0){
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+    payload = http.getString();
+  }
+  else{
+    Serial.print("Error code: ");
+    Serial.println(httpResponseCode);
+  }
+  //HTTP kérés befejezése
+  http.end();
+
+  return payload;
+}
+
+void loop() {
+  if ((millis() - prevTime) > timerDelay){
+    
+    if (WiFi.status()== WL_CONNECTED){
+      Serial.println(serverPath);
+      jsonBuffer = httpGETRequest(serverPath);
+      Serial.println(jsonBuffer);
+      JSONVar myObject = JSON.parse(jsonBuffer);
+
+      if (JSON.typeof(myObject) == "undefined"){
+        Serial.println("Parsing input failed!");
+        return;
+      }
+
+      Serial.print("JSON object = ");
+      Serial.println(myObject);
+      Serial.print("Temperature: ");
+      Serial.println(myObject["main"]["temp"]);
+      Serial.print("Pressure: ");
+      Serial.println(myObject["main"]["pressure"]);
+      Serial.print("Humidity: ");
+      Serial.println(myObject["main"]["humidity"]);
+      Serial.print("Wind speed: ");
+      Serial.println(myObject["wind"]["speed"]);
+    }
+    else{
+      Serial.println("WiFi Disconnected");
+    }
+    prevTime = millis();
+  }
+}

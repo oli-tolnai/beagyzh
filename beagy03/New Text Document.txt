@@ -1,0 +1,66 @@
+#define CPU 16000000UL
+#define UART_BAUDRATE 9600
+#define UBRR_VALUE ((CPU/(UART_BAUDRATE*16UL))-1)
+
+void UART_Init(int ubrr);
+void UART_Transmit(char data);
+char UART_Recieve();
+
+char data;
+
+void setup() {
+  UART_Init(UBRR_VALUE);
+}
+
+void loop() {
+
+}
+
+
+
+
+void UART_Init(int ubrr)
+{
+
+
+  UBRR0L = ubrr;
+
+  UBRR0H = (ubrr >> 8);
+
+  UCSR0C &= ~((1 << UMSEL01) | (1 << UMSEL00));
+
+  UCSR0B &= ~(1 << UCSZ02);
+  UCSR0C |= (1 << UCSZ00) | (1 << UCSZ01);
+
+  UCSR0C &= ~((1 << UPM01) | (1 << UPM00));
+
+  UCSR0C &= ~(1 << USBS0);
+
+  UCSR0B|=(1 << RXEN0) | (1 << TXEN0);
+  UCSR0B |= (1 << RXCIE0);
+}
+
+
+void UART_Transmit(char data){
+  while (!(UCSR0A & (1 << UDRE0)));
+
+  UDR0 = data;
+}
+
+
+char UART_Recieve(){
+  
+  while (!(UCSR0A & (1 << RXC0)));
+
+
+  return UDR0;
+}
+
+ISR(USART0_RX_vect){
+  char data;
+  data = UART_Recieve();
+  UART_Transmit('[');
+  UART_Transmit(data);
+  UART_Transmit(']');
+}
+
