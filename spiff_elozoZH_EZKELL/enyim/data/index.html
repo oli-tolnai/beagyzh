@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Aszinkron Webszerver</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        button {
+            background: #202a66;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #000940;
+        }
+    </style>
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <h1>EEN4PB - Tolnai Olivér</h1>
+    <h1>ESP8266 Művelet két számmal</h1>
+    <button class="button" onclick="calculate('sum')">+</button>
+    <button class="button" onclick="calculate('sub')">-</button>
+    <button class="button" onclick="calculate('div')">%</button>
+    <hr>
+    <input type="number" id="num1" placeholder="Első szám">
+    <input type="number" id="num2" placeholder="Második szám">
+    <p>Összeadás: <span id="sumResValue">N/A</span></p>
+    <p>Kivonás: <span id="mulResValue">N/A</span></p>
+    <p>Osztás: <span id="divResValue">N/A</span></p>
+    <button class="button" onclick="calculate()">
+        PARAMÉTEREK LEKÉRDEZÉSE
+    </button>
+    
+</body>
+</html>
+
+
